@@ -204,11 +204,11 @@ export default class Search extends Component {
     debug('getAutoControlledStateFromProps()')
 
     if (!shallowEqual(state.value, props.value)) {
-      debug('value changed, setting', props.value)
+      const selectedIndex = props.selectFirstResult ? 0 : -1
+      debug('value changed, setting selectedIndex', selectedIndex)
 
       return {
-        value: props.value,
-        selectedIndex: props.selectFirstResult ? 0 : -1,
+        selectedIndex,
       }
     }
   }

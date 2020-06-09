@@ -393,16 +393,23 @@ export default class Dropdown extends Component {
     return { focus: false, searchQuery: '' }
   }
 
-  // eslint-disable-next-line camelcase
-  UNSAFE_componentWillMount() {
-    debug('componentWillMount()')
-    const { open, value } = this.state
+  static getAutoControlledStateFromProps(props, state) {
+    const selectedIndex = getSelectedIndex({
+      additionLabel: props.additionLabel,
+      additionPosition: props.additionPosition,
+      allowAdditions: props.allowAdditions,
+      deburr: props.deburr,
+      multiple: props.multiple,
+      search: props.search,
 
-    this.setValue(value)
-    this.setSelectedIndex(value)
+      options: props.options,
+      searchQuery: state.searchQuery,
+      selectedIndex: state.selectedIndex,
+      value: state.value,
+    })
 
-    if (open) {
-      this.open()
+    return {
+      selectedIndex,
     }
   }
 
@@ -434,7 +441,7 @@ export default class Dropdown extends Component {
 
     if (!shallowEqual(nextProps.value, this.props.value)) {
       debug('value changed, setting', nextProps.value)
-      this.setValue(nextProps.value)
+      this.setState({ value: nextProps.value })
       this.setSelectedIndex(nextProps.value)
     }
 
@@ -484,6 +491,15 @@ export default class Dropdown extends Component {
     } else if (prevState.open && !this.state.open) {
       debug('dropdown closed')
     }
+
+    // TODO: fix me to use
+    const { disabled, open } = this.props
+    debug('open()', { disabled, open, search })
+
+    if (disabled) return
+
+    if (search) _.invoke(this.searchRef.current, 'focus')
+    this.scrollSelectedItemIntoView()
   }
 
   // ----------------------------------------
@@ -567,7 +583,7 @@ export default class Dropdown extends Component {
 
     if (valueHasChanged) {
       // notify the onChange prop that the user is trying to change value
-      this.setValue(newValue)
+      this.setState({ value: newValue })
       this.setSelectedIndex(newValue)
       this.handleChange(e, newValue)
 
@@ -625,7 +641,7 @@ export default class Dropdown extends Component {
     // remove most recent value
     const newValue = _.dropRight(value)
 
-    this.setValue(newValue)
+    this.setState({ value: newValue })
     this.setSelectedIndex(newValue)
     this.handleChange(e, newValue)
   }
@@ -720,7 +736,7 @@ export default class Dropdown extends Component {
 
     // notify the onChange prop that the user is trying to change value
     if (valueHasChanged) {
-      this.setValue(newValue)
+      this.setState({ value: newValue })
       this.setSelectedIndex(value)
 
       this.handleChange(e, newValue)
@@ -930,11 +946,6 @@ export default class Dropdown extends Component {
     this.setSelectedIndex(value, undefined, '')
   }
 
-  setValue = (value) => {
-    debug('setValue()', value)
-    this.setState({ value })
-  }
-
   setSelectedIndex = (
     value = this.state.value,
     options = this.props.options,
@@ -978,7 +989,7 @@ export default class Dropdown extends Component {
     debug('remove value:', labelProps.value)
     debug('new value:', newValue)
 
-    this.setValue(newValue)
+    this.setState({ value: newValue })
     this.setSelectedIndex(newValue)
     this.handleChange(e, newValue)
   }
@@ -1049,7 +1060,7 @@ export default class Dropdown extends Component {
     const { multiple } = this.props
     const newValue = multiple ? [] : ''
 
-    this.setValue(newValue)
+    this.setState({ value: newValue })
     this.setSelectedIndex(newValue)
     this.handleChange(e, newValue)
   }
@@ -1145,7 +1156,8 @@ export default class Dropdown extends Component {
   }
 
   open = (e) => {
-    const { disabled, open, search } = this.props
+    const { disabled, search } = this.props
+    const { open } = this.state
     debug('open()', { disabled, open, search })
 
     if (disabled) return
