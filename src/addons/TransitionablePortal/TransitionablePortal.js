@@ -64,19 +64,13 @@ export default class TransitionablePortal extends Component {
     },
   }
 
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      portalOpen: props.open,
-    }
-  }
+  state = {}
 
   // ----------------------------------------
   // Lifecycle
   // ----------------------------------------
 
-  static getAutoControlledStateFromProps(state, props) {
+  static getDerivedStateFromProps(props) {
     return { portalOpen: props.open }
   }
 
